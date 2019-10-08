@@ -1,52 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 import ReactDOM from 'react-dom';
 import SeasonDisplay from './SeasonDisplay';
 import Spinner from './Spinner';
 
 
-class App extends React.Component {
-
-    state = { lat: null, long: null, errMsg: '', timeStamp: '' };
-    componentDidMount() {
-        this.getLocation();
-    }
-    getLocation() {
+const App = () => {
+    const [lat, setLat] = useState(null)
+    const [long, setLong] = useState(null)
+    const [errMsg, setErrMsg] = useState('')
+    const [timeStamp, setTimeStamp] = useState('')
+    useEffect(() => {
+        getLocation();
+    }, [])
+    const getLocation = () => {
         window.navigator.geolocation.getCurrentPosition(
             (position) => {
-                this.setState({ lat: position.coords.latitude, long: position.coords.longitude });
+                setLat(position.coords.latitude)
+                setLong(position.coords.longitude)
 
                 setInterval(() => {
-                    this.setState({ timeStamp: new Date().toLocaleTimeString() });
+                    setTimeStamp(new Date().toLocaleTimeString())
                 }, 1000);
-
-
             }
-            , (err) => this.setState({ errMsg: err.message })
+            , (err) => setErrMsg(err.message)
         );
 
     }
-    render() {
-        if (!this.state.errMsg && this.state.lat && this.state.long) {
-            return (
-                <div>
-                    <SeasonDisplay lat={this.state.lat} long={this.state.long} error={this.state.errMsg} time={this.state.timeStamp} />
-
-                </div>
-            );
-        }
-        if (!this.state.errMsg && !this.state.lat && !this.state.long) {
-            return (
-                <Spinner message="please accept location request" />
-            );
-        }
+    if (lat && long) {
         return (
             <div>
-                {!this.state.errMsg ? '' : <span>{this.state.errMsg}</span>}
+                <SeasonDisplay lat={lat} long={long} error={errMsg} time={timeStamp} />
             </div>
         );
-
     }
+    if (!errMsg && !lat && !long) {
+        return (
+            <Spinner message="please accept location request" />
+        );
+    }
+    return (
+        <div>
+            {!errMsg ? '' : <span>{errMsg}</span>}
+        </div>
+    );
+
 }
 
 ReactDOM.render(<App />, document.querySelector('#root'));
